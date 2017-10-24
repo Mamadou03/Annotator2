@@ -76,6 +76,9 @@ Exécutez `ng build` pour générer le projet. Les fichiers utilisés en product
 ### 3.6. Démarrage des tests unitaires
 Exécutez `ng test` pour exécuter les tests unitaires via [Karma](https://karma-runner.github.io/1.0/index.html).
 
+### 3.7. Démarrage des tests End-2-End
+Exécutez `ng test` pour exécuter les tests End-2-End via [Protractor](http://www.protractortest.org).
+
 <a id="structure"></a>
 ## 4. Structure des fichiers
 
