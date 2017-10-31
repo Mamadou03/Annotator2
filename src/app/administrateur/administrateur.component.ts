@@ -6,6 +6,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { AnnotateurService, IAnnotateur } from '../shared/annotateur.service';
 import { ProjetService, IProjet } from '../shared/projet.service';
 import { FormGroup,  FormBuilder,  Validators} from '@angular/forms';
+import { RoleService , IRole} from '../shared/role.service';
 
 
 import { UploadService } from './../shared/upload.service';
@@ -20,9 +21,12 @@ import {Upload} from "../shared/upload";
 export class AdministrateurComponent implements OnInit {
   @ Input() editeurList: Observable<Array<any>>;
   @ Input() courriel: string;
+  @ Input() tabRole: Array<IRole>;
+  uid: string;
   itemRef: AngularFireObject<any>;
   item: Observable<any>;
   annotateurs: BehaviorSubject<IAnnotateur[]>;
+  role: BehaviorSubject<string>
   projets: BehaviorSubject<IProjet[]>;
   files: BehaviorSubject<Upload[]>;
   public foods;
@@ -35,13 +39,13 @@ export class AdministrateurComponent implements OnInit {
   isLinear = false;
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
-  test4 = 'allo';
+  _listeRole = [];
 
 
-  constructor(private fb: FormBuilder, db: AngularFireDatabase, private http: Http, private up: UploadService,  private an: AnnotateurService, private pr: ProjetService) {
+  constructor(private ro: RoleService, private fb: FormBuilder, db: AngularFireDatabase, private http: Http,
+              private up: UploadService,  private an: AnnotateurService, private pr: ProjetService) {
     this.itemRef = db.object('/edition');
     this.item = this.itemRef.valueChanges();
-    this.test4 = 'allo';
   }
 
   save(newName: string) {
@@ -49,10 +53,12 @@ export class AdministrateurComponent implements OnInit {
   }
 
   deleteItem(key: string) {
-    console.log(key);
+
   }
 
   ngOnInit() {
+this.trouverUid();
+    this.listeRole();
     this.vue = 'home';
     // addAnnotateur
     // addText
@@ -70,14 +76,11 @@ export class AdministrateurComponent implements OnInit {
       secondCtrl: ['', Validators.required]
     });
   }
-  test(e) {
-  //  var jsonText = JSON.stringify(this.xmlToJson(e));
-  }
   trouverListeAnnotateur(courriel: string) {
     this.an.trouverListeAnnotateur(courriel).subscribe( x => {
       this.annotateurs = new BehaviorSubject(x);
       this.annotateurs.subscribe( y => {
-        console.log('liste ann',y);
+
         }
       )
       }
@@ -86,9 +89,9 @@ export class AdministrateurComponent implements OnInit {
   trouverListeProjet(courriel: string) {
     this.pr.trouverListeProjet(courriel).subscribe( x => {
         this.projets = new BehaviorSubject(x);
-        console.log('projet', x)
+
         this.projets.subscribe( y => {
-          console.log(y);
+
           }
         )
       }
@@ -99,7 +102,7 @@ export class AdministrateurComponent implements OnInit {
     this.up.infoUpload.subscribe(
       x => {
         this.files = new BehaviorSubject(x);
-        console.log('upliste', x )
+
       }
     )
   }
@@ -125,7 +128,7 @@ export class AdministrateurComponent implements OnInit {
     if (selected.selected === true) {
       this.listeNomProjet.push(nomProjet)
     } else {
-      this.listeNomProjet.map( x => {
+      this.listeNomProjet.forEach( x => {
         if ( nomProjet === x )
           this.listeNomProjet.pop();
         }
@@ -138,7 +141,7 @@ export class AdministrateurComponent implements OnInit {
     } else {
       this.listeNomProjetRepertoire = '';
     }
-    console.log('test',  this.listeNomProjetRepertoire)
+
   }
 
   selectionAnnotateurProjet(selected: any , annotateur: IAnnotateur) {
@@ -151,24 +154,78 @@ export class AdministrateurComponent implements OnInit {
         }
       )
     }
-    console.log(this._listeAnnotateur, 'annotateur')
+
   }
   addAnnotateurClick() {
     this.vue = 'addAnnotateur';
   }
- addTextesClick(){
+ addTextesClick() {
    this.vue = 'addText'
  }
   enregistrerAnnotateurClick(nom: string, prenom: string, courriel: string ) {
+    let temp: any;
+   let aUnRole = false;
+    this._listeRole.forEach( x => {
+      if (x['data'] !== undefined) {
+        let data = x['data'].data;
+        const _courriel = x['data'].id;
+        const uid = x['id'];
+        if (_courriel === courriel) {
+          data['annotateur'] = true;
+          aUnRole = true;
+          this.ro.updateRole(_courriel, data, uid)
+        }
+      }
+    });
+  if (!aUnRole) {
+      this.ro.addRoleAnnotateur(courriel, {id: courriel, administrateurSys: false, annotateur: true, administrateur: false})
+    }
+    const sizeListRole = this._listeRole.length - 1;
+    this._listeRole[sizeListRole].forEach( x => {
+      if (x['id'] === courriel) {
+        temp = x['data'];
+      }
+    });
+    if ( temp === undefined ) {
+      this.tabRole['annotateur'] = true;
+      this.tabRole['id'] = courriel;
+    //  this.ro.addRoleAnnotateur(courriel, this.tabRole);
+    } else {
+   //   this.trouverUid(courriel);
+    }
     let annotateur: IAnnotateur;
     const id = this.courriel + '&' + courriel;
-    annotateur = {id: id, nom: nom, prenom: prenom, courriel: courriel, projets: this.listeNomProjet, administrateur: this.courriel}
+    annotateur = {id: id, nom: nom, prenom: prenom, courriel: courriel, projets: this.listeNomProjet, administrateur: this.courriel};
+
     this.an.addAnnotateur(id, annotateur);
     this.vue = 'home';
     this.createForm();
   }
-  UpdateChangeEtat(e){
-   this.vue = e;
-   console.log(e)
+  listeRole() {
+    let temp: Observable<any>;
+    temp = this.ro._tabRoles;
+    temp.subscribe(x => {
+      this._listeRole.push(x);
+    })
+  }
+  trouverUid() {
+    let trouverUid: Observable<any>
+    trouverUid = this.ro.trouverUid.snapshotChanges()
+      .map(actions => {
+        return actions.map(a => {
+          const data = a.payload.doc.data() as IRole;
+          const id = a.payload.doc.id;
+          this.uid = id
+          this._listeRole.push({id: id, data: data})
+        //  this.createForm(data);
+          return {id, ...data};
+        });
+      });
+    trouverUid.subscribe(
+      x => console.log('subscrib', x )
+    )
+  }
+  fermerClick() {
+    this.vue = 'home';
   }
 }
