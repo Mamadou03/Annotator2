@@ -70,11 +70,17 @@ Il est nécessaire de définir chaque environnement de travail (développement, 
 ### 3.4. Installation d'Angular Material
 Le Material Design est un ensemble de règles de design pour les interfaces graphiques proposées par Google. Vous devrez installer la librairie à l'aide du [guide d'installation](https://material.angular.io/guide/getting-started).
 
-### 3.5. Démarrage 
+### 3.5. Lancement du serveur web sur le port 4200 
+Angular-Cli s'occupera de compiler l'ensemble du projet et de lancer un serveur web sur le port 4200 à partir de cet URL: http://localhost:4200/
+
+### 3.6. Démarrage 
 Exécutez `ng build` pour générer le projet. Les fichiers utilisés en production seront enregistrés dans le répertoire `/dist`. Les paramètres du build se trouvent dans le fichier `firebase.json`.
 
-### 3.6. Démarrage des tests unitaires
+### 3.7. Démarrage des tests unitaires
 Exécutez `ng test` pour exécuter les tests unitaires via [Karma](https://karma-runner.github.io/1.0/index.html).
+
+### 3.8. Démarrage des tests End-2-End
+Exécutez `ng e2e` pour exécuter les tests End-2-End via [Protractor](http://www.protractortest.org).
 
 <a id="structure"></a>
 ## 4. Structure des fichiers
