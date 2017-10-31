@@ -47,11 +47,6 @@ export class AdministrateurComponent implements OnInit {
     this.itemRef = db.object('/edition');
     this.item = this.itemRef.valueChanges();
   }
-
-  save(newName: string) {
-   // this.editeurList.push({email: newName});
-  }
-
   deleteItem(key: string) {
 
   }
